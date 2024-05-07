@@ -12,8 +12,8 @@ input {
 }
 
 body {
-  max-height: 100vh;
-  max-width: 100vw;
-  overflow: hidden;
-  background-color: #F7F0E6 !important;
+  /* max-height: 100vh; */
+  /* max-width: 100vw; */
+  /* overflow: hidden; */
+  background-color: #e6ecf7 !important;
 }

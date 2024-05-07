@@ -1,28 +1,27 @@
 const mongoose = require("mongoose");
 
-const employeeSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
   },
-  role_id: {
+  category_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Role",
+    ref: "Category",
     required: true,
   },
-  password: {
-    type: String,
-    default: "123456",
-  },
-  email: {
+  description: {
     type: String,
     required: true,
-    unique: true,
   },
-  contact: {
+  price: {
+    type: String,
+    required: true,
+  },
+  quantity_in_stock: {
     type: String,
     required: true,
   },
 });
 
-module.exports = mongoose.model("Employee", employeeSchema);
+module.exports = mongoose.model("Product", productSchema);

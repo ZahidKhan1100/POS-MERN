@@ -1,34 +1,49 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Col, Container, Row, Modal, Form } from "react-bootstrap";
 import styled from "styled-components";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import { addCategoryRoute, deleteCategoryRoute } from "../../utils/APIRoutes";
-import {
-  addCategory,
-  removeCategory,
-  updateCategory,
-} from "../../features/category/categorySlice";
 import { useSelector, useDispatch } from "react-redux";
-import CategoryTable from "./CategoryTable";
 import Swal from "sweetalert2";
+import { addProductRoute, deleteProductRoute } from "../../utils/APIRoutes";
+import {
+  addProduct,
+  fetchProducts,
+  removeProduct,
+  updateProduct,
+} from "../../features/products/productSlice";
+import { fetchCategories } from "../../features/category/categorySlice";
+import ProductsTable from "./ProductsTable";
 
-const Category = () => {
+const Product = () => {
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [id, setId] = useState("");
-  const [modalTitle, setModalTitle] = useState("Add Category");
+  const [category_id, setCategoryId] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [quantity_in_stock, setQuantityInStock] = useState("");
+  const [modalTitle, setModalTitle] = useState("Add Product");
+  const [hidePassword, setHidePassword] = useState(false);
 
+  const products = useSelector((state) => state.product.products);
   const categories = useSelector((state) => state.category.categories);
+
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
   const handleClose = () => setShow(false);
+
   const handleShow = () => {
     setShow(true);
     setName("");
+    setCategoryId("");
+    setPrice("");
     setDescription("");
-    setId("");
+    setQuantityInStock("");
   };
 
   const toastOptions = {
@@ -40,12 +55,16 @@ const Category = () => {
   };
 
   const handleEdit = (id) => {
-    const category = categories.find((category) => category._id === id);
-    setName(category.name);
-    setDescription(category.description);
-    setId(category._id);
-    setModalTitle("Update Category");
+    const product = products.find((product) => product._id === id);
+    setId(product._id);
+    setName(product.name);
+    setDescription(product.description);
+    setPrice(product.price);
+    setCategoryId(product.category_id);
+    setQuantityInStock(product.quantity_in_stock);
+    setModalTitle("Update Product");
     setShow(true);
+    setHidePassword(true);
   };
 
   const handleDelete = async (id) => {
@@ -60,12 +79,12 @@ const Category = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const { data } = await axios.delete(`${deleteCategoryRoute}/${id}`);
+          const { data } = await axios.delete(`${deleteProductRoute}/${id}`);
           if (data.status === true) {
-            dispatch(removeCategory(id));
+            dispatch(removeProduct(id));
             Swal.fire({
               title: "Deleted!",
-              text: "Your Category has been deleted.",
+              text: "Your employee has been deleted.",
               icon: "success",
             });
           } else {
@@ -80,7 +99,7 @@ const Category = () => {
           // Handle Axios error
           Swal.fire({
             title: "Error!",
-            text: "An error occurred while deleting the category.",
+            text: "An error occurred while deleting the employee.",
             icon: "error",
           });
         }
@@ -95,19 +114,33 @@ const Category = () => {
     } else if (description === "") {
       toast.error("Description is required", toastOptions);
       return false;
+    } else if (category_id === "") {
+      if (hidePassword) {
+        return true;
+      } else {
+        toast.error("Category is required", toastOptions);
+        return false;
+      }
+    } else if (price === "") {
+      toast.error("Price is required", toastOptions);
+      return false;
+    } else if (quantity_in_stock === "") {
+      toast.error("Quantity is required", toastOptions);
+      return false;
     }
     return true;
   };
 
   const handleSubmit = async () => {
     if (handleValidation()) {
-      const { data } = await axios.post(addCategoryRoute, {
+      const { data } = await axios.post(addProductRoute, {
         id,
         name,
         description,
+        category_id,
+        price,
+        quantity_in_stock,
       });
-
-      console.log("updated", data);
 
       if (data.status === false) {
         toast.error(data.message, toastOptions);
@@ -115,12 +148,13 @@ const Category = () => {
 
       if (data.status === true) {
         setShow(false);
-        dispatch(addCategory(data));
+        dispatch(addProduct(data));
+        dispatch(fetchProducts());
       }
-
       if (data.status === "updated") {
         setShow(false);
-        dispatch(updateCategory(data));
+        dispatch(updateProduct(data));
+        dispatch(fetchProducts());
       }
     }
   };
@@ -138,26 +172,58 @@ const Category = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group className="mb-3" controlId="categoryForm.ControlInput1">
+            <Form.Group className="mb-3" controlId="productForm.ControlInput1">
               <Form.Label>Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter Category Name"
+                placeholder="Enter Product Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </Form.Group>
-            <Form.Group
-              className="mb-3"
-              controlId="categoryForm.ControlTextarea1"
-            >
+            <Form.Group className="mb-3" controlId="productForm.ControlInput2">
               <Form.Label>Description</Form.Label>
               <Form.Control
-                as="textarea"
-                rows={3}
+                type="email"
                 value={description}
+                placeholder="Enter Description"
                 onChange={(e) => setDescription(e.target.value)}
               />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="productForm.ControlInput3">
+              <Form.Label>Price</Form.Label>
+              <Form.Control
+                type="text"
+                value={price}
+                placeholder="Enter Product Price"
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="productForm.ControlInput3">
+              <Form.Label>Quantity in stock</Form.Label>
+              <Form.Control
+                type="text"
+                value={quantity_in_stock}
+                placeholder="Enter Product Price"
+                onChange={(e) => setQuantityInStock(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="productForm.ControlInput4">
+              <Form.Label>Select Category</Form.Label>
+              <Form.Select
+                aria-label="Default select example"
+                value={category_id}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option>Category</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -174,16 +240,16 @@ const Category = () => {
         <Row className="justify-content-end">
           <Col xs="auto">
             <Button className="mb-2" onClick={handleShow}>
-              Add Category
+              Add Product
             </Button>
           </Col>
         </Row>
         <Row>
           <Col>
-            <CategoryTable
+            <ProductsTable
               handleEdit={handleEdit}
               handleDelete={handleDelete}
-            ></CategoryTable>
+            ></ProductsTable>
           </Col>
         </Row>
       </StyledContainer>
@@ -207,4 +273,4 @@ const StyledContainer = styled(Container)`
     padding: 2px;
   }
 `;
-export default Category;
+export default Product;

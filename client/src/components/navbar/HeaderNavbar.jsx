@@ -5,7 +5,6 @@ import Navbar from "react-bootstrap/Navbar";
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
 
-
 const StyledNavLink = styled(NavLink)`
   color: #000000;
   text-decoration: none;
@@ -30,7 +29,7 @@ const HeaderNavbar = () => {
       className="bg-body-tertiary"
     >
       <Container fluid>
-        <Navbar.Brand href="#">Navbar scroll</Navbar.Brand>
+        <Navbar.Brand href="#">POS</Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll">
           <Nav
@@ -42,7 +41,16 @@ const HeaderNavbar = () => {
               <StyledNavLink to="/category">Category</StyledNavLink>
             </Nav.Link>
             <Nav.Link>
+              <StyledNavLink to="/product">Product</StyledNavLink>
+            </Nav.Link>
+            <Nav.Link>
               <StyledNavLink to="/employee">Employee</StyledNavLink>
+            </Nav.Link>
+            <Nav.Link>
+              <StyledNavLink to="/role">Role</StyledNavLink>
+            </Nav.Link>
+            <Nav.Link>
+              <StyledNavLink to="/bill">Bill</StyledNavLink>
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>

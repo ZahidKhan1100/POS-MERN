@@ -1,34 +1,47 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Col, Container, Row, Modal, Form } from "react-bootstrap";
 import styled from "styled-components";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
-import { addCategoryRoute, deleteCategoryRoute } from "../../utils/APIRoutes";
-import {
-  addCategory,
-  removeCategory,
-  updateCategory,
-} from "../../features/category/categorySlice";
+import { addRoleRoute, deleteRoleRoute } from "../../utils/APIRoutes";
+import { addRole, removeRole, updateRole } from "../../features/role/roleSlice";
 import { useSelector, useDispatch } from "react-redux";
-import CategoryTable from "./CategoryTable";
 import Swal from "sweetalert2";
+import RoleTable from "./RoleTable";
+import { fetchPermissions } from "../../features/permissions/permissionSlice";
 
-const Category = () => {
+const Role = () => {
   const [show, setShow] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [role, setRole] = useState("");
+  const [selectPermission, setSelectPermission] = useState([]);
   const [id, setId] = useState("");
   const [modalTitle, setModalTitle] = useState("Add Category");
+  const permissions = useSelector((state) => state.permission.permissions);
 
-  const categories = useSelector((state) => state.category.categories);
+  const roles = useSelector((state) => state.role.roles);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchPermissions());
+  }, [dispatch]);
 
   const handleClose = () => setShow(false);
   const handleShow = () => {
     setShow(true);
-    setName("");
-    setDescription("");
+    setRole("");
     setId("");
+  };
+
+  // Function to handle checkbox change
+  const handleCheckboxChange = (event) => {
+    const { value, checked } = event.target;
+    if (checked) {
+      setSelectPermission((prevPermissions) => [...prevPermissions, value]);
+    } else {
+      setSelectPermission((prevPermissions) =>
+        prevPermissions.filter((permission) => permission !== value)
+      );
+    }
   };
 
   const toastOptions = {
@@ -40,10 +53,9 @@ const Category = () => {
   };
 
   const handleEdit = (id) => {
-    const category = categories.find((category) => category._id === id);
-    setName(category.name);
-    setDescription(category.description);
-    setId(category._id);
+    const role = roles.find((role) => role._id === id);
+    setRole(role.role);
+    setId(role._id);
     setModalTitle("Update Category");
     setShow(true);
   };
@@ -60,9 +72,9 @@ const Category = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const { data } = await axios.delete(`${deleteCategoryRoute}/${id}`);
+          const { data } = await axios.delete(`${deleteRoleRoute}/${id}`);
           if (data.status === true) {
-            dispatch(removeCategory(id));
+            dispatch(removeRole(id));
             Swal.fire({
               title: "Deleted!",
               text: "Your Category has been deleted.",
@@ -89,10 +101,10 @@ const Category = () => {
   };
 
   const handleValidation = () => {
-    if (name === "") {
+    if (role === "") {
       toast.error("Name is required", toastOptions);
       return false;
-    } else if (description === "") {
+    } else if (role === "") {
       toast.error("Description is required", toastOptions);
       return false;
     }
@@ -101,10 +113,9 @@ const Category = () => {
 
   const handleSubmit = async () => {
     if (handleValidation()) {
-      const { data } = await axios.post(addCategoryRoute, {
+      const { data } = await axios.post(addRoleRoute, {
         id,
-        name,
-        description,
+        role,
       });
 
       console.log("updated", data);
@@ -115,12 +126,12 @@ const Category = () => {
 
       if (data.status === true) {
         setShow(false);
-        dispatch(addCategory(data));
+        dispatch(addRole(data));
       }
 
       if (data.status === "updated") {
         setShow(false);
-        dispatch(updateCategory(data));
+        dispatch(updateRole(data));
       }
     }
   };
@@ -138,26 +149,32 @@ const Category = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group className="mb-3" controlId="categoryForm.ControlInput1">
-              <Form.Label>Name</Form.Label>
+            <Form.Group className="mb-3" controlId="roleForm.ControlInput1">
+              <Form.Label>Role</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Enter Category Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter Role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
               />
             </Form.Group>
-            <Form.Group
-              className="mb-3"
-              controlId="categoryForm.ControlTextarea1"
-            >
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
+            <Form.Group className="mb-3" controlId="roleForm.checkbox1">
+              <Form.Label>Permissions</Form.Label>
+              {selectPermission &&
+                selectPermission.map((sp) => <span>{sp}</span>)}
+              <br />
+              {permissions &&
+                permissions.map((permission) => (
+                  <Form.Check
+                    key={permission.id} // Add a unique key prop
+                    inline
+                    label={permission.name}
+                    name="permissions"
+                    type="checkbox"
+                    value={permission.name} // Set value to permission name or unique identifier
+                    onChange={handleCheckboxChange} // Handle checkbox change
+                  />
+                ))}
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -174,16 +191,16 @@ const Category = () => {
         <Row className="justify-content-end">
           <Col xs="auto">
             <Button className="mb-2" onClick={handleShow}>
-              Add Category
+              Add Role
             </Button>
           </Col>
         </Row>
         <Row>
           <Col>
-            <CategoryTable
+            <RoleTable
               handleEdit={handleEdit}
               handleDelete={handleDelete}
-            ></CategoryTable>
+            ></RoleTable>
           </Col>
         </Row>
       </StyledContainer>
@@ -207,4 +224,4 @@ const StyledContainer = styled(Container)`
     padding: 2px;
   }
 `;
-export default Category;
+export default Role;

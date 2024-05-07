@@ -3,7 +3,12 @@ const morgan = require("morgan");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const connectDB = require("./database/connection");
-const categoryRoutes = require('./routes/categoryRoutes')
+const categoryRoutes = require("./routes/categoryRoutes");
+const employeeRoutes = require("./routes/employeeRoutes");
+const roleRoutes = require("./routes/roleRoutes");
+const permissionRoutes = require("./routes/permissionRoutes");
+const productRoutes = require("./routes/productRoutes");
+const saleRoutes = require("./routes/saleRoutes");
 
 const app = express();
 require("dotenv").config();
@@ -16,11 +21,17 @@ app.disable("x-powered-by");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/api/category',categoryRoutes)
+app.use("/api/category", categoryRoutes);
+app.use("/api/employee", employeeRoutes);
+app.use("/api/role", roleRoutes);
+app.use("/api/permissions", permissionRoutes);
+app.use("/api/product", productRoutes);
+app.use("/api/sale", saleRoutes);
 
-http://localhost:3100/api/category/addcategory
 
-connectDB()
+//localhost:3100/api/category/addcategory
+
+http: connectDB()
   .then(() => {
     app.listen(process.env.PORT);
     console.log(`App running on port ${process.env.PORT}`);
